@@ -42,6 +42,9 @@ services:
             "Enable": true,
             "Database": "/var/lib/orthanc/worklists"
           },
+          "StoneWebViewer": {
+            "InstitutionLogo": "https://portal-exames.vercel.app/servioClinLogo.webp"
+          },
           "OrthancExplorer2": {
             "IsDefaultUI": true,
             "UiOptions": {
@@ -81,6 +84,11 @@ services:
       ORTHANC_JSON: |
         {
           "Name": "Orthanc Público",
+          "StoneWebViewer": {
+            "InstitutionLogo": "https://portal-exames.vercel.app/servioClinLogo.webp",
+            "ApplicationTitle": "ServioClin - Portal de Exames"
+
+          },
           "OrthancExplorer2": {
             "IsDefaultUI": true,
             "UiOptions": {
@@ -153,3 +161,85 @@ services:
 volumes:
   orthanc-storage: null
   orthanc-db: null
+
+#   version: '3.9'
+# services:
+#   nginx:
+#     image: 'orthancteam/orthanc-nginx:25.9.0'
+#     depends_on:
+#       - orthanc
+#       - orthanc-auth-service
+#       - orthanc-for-shares
+#     restart: unless-stopped
+#     environment:
+#       ENABLE_ORTHANC: 'true'
+#       ENABLE_ORTHANC_FOR_SHARES: 'true'
+#       ENABLE_ORTHANC_TOKEN_SERVICE: 'false'
+#       ENABLE_HTTPS: 'false'
+#       ENABLE_OHIF: 'true'
+#   orthanc:
+#     image: 'orthancteam/orthanc:25.10.5'
+#     restart: unless-stopped
+#     depends_on:
+#       - orthanc-db
+#     volumes:
+#       - 'orthanc-storage:/var/lib/orthanc/db'
+#       - './worklists:/var/lib/orthanc/worklists'  # <<< ADICIONAR
+#     ports:
+#       - '4242:4242'
+#     environment:
+#       STONE_WEB_VIEWER_PLUGIN_ENABLED: 'true'
+#       DICOM_WEB_PLUGIN_ENABLED: 'true'
+#       WORKLISTS_PLUGIN_ENABLED: 'true'
+#       ORTHANC__POSTGRESQL__HOST: orthanc-db
+#       ORTHANC__POSTGRESQL__TRANSACTION_MODE: ReadCommitted
+#       ORTHANC_JSON: "{\n  \"Name\": \"Orthanc Principal\",\n  \"OrthancExplorer2\": {\n    \"IsDefaultUI\": true,\n    \"UiOptions\": {\n      \"EnableShares\": true,\n      \"DefaultShareDuration\": 0,\n      \"ShareDurations\": [0, 7, 15, 30, 90, 365],\n      \"EnableOpenInOhifViewer3\": true,\n      \"OhifViewer3PublicRoot\": \"https://orthanc.kemax.com.br/ohif/\"\n    },\n    \"Tokens\": {\n      \"ShareType\": \"stone-viewer-publication\"\n    }\n  },\n  \"AuthenticationEnabled\": true,\n  \"RegisteredUsers\": {\n    \"admin\": \"Admin@12345\"\n  },\n  \"Authorization\": {\n    \"WebServiceTokenCreationBaseUrl\": \"http://orthanc-auth-service:8000/tokens/\",\n    \"WebServiceUsername\": \"share-user\",\n    \"WebServicePassword\": \"Share@2024\"\n  }\n}\n"
+#   orthanc-for-shares:
+#     image: 'orthancteam/orthanc:25.10.5'
+#     restart: unless-stopped
+#     depends_on:
+#       - orthanc-db
+#     volumes:
+#       - 'orthanc-storage:/var/lib/orthanc/db'
+#     environment:
+#       STONE_WEB_VIEWER_PLUGIN_ENABLED: 'true'
+#       DICOM_WEB_PLUGIN_ENABLED: 'true'
+#       ORTHANC__POSTGRESQL__HOST: orthanc-db
+#       ORTHANC__POSTGRESQL__TRANSACTION_MODE: ReadCommitted
+#       ORTHANC_JSON: "{\n  \"Name\": \"Orthanc Público\",\n  \"OrthancExplorer2\": {\n    \"IsDefaultUI\": true,\n    \"UiOptions\": {\n      \"EnableShares\": true,\n      \"DefaultShareDuration\": 0,\n      \"ShareDurations\": [0, 7, 15, 30, 90, 365]\n    },\n    \"Tokens\": {\n      \"ShareType\": \"stone-viewer-publication\"\n    }\n  },\n  \"AuthenticationEnabled\": false,\n  \"Authorization\": {\n    \"WebServiceRootUrl\": \"http://orthanc-auth-service:8000/\",\n    \"WebServiceUsername\": \"share-user\",\n    \"WebServicePassword\": \"Share@2024\",\n    \"StandardConfigurations\": [\n      \"osimis-web-viewer\",\n      \"stone-webviewer\",\n      \"orthanc-explorer-2\"\n    ],\n    \"CheckedLevel\": \"studies\"\n  },\n  \"DicomWeb\": {\n    \"Enable\": true,\n    \"PublicRoot\": \"/orthanc/dicom-web/\"\n  }\n}\n"
+#   orthanc-auth-service:
+#     image: 'orthancteam/orthanc-auth-service:25.8.1'
+#     restart: unless-stopped
+#     ports:
+#       - '8001:8000'
+#     environment:
+#       SECRET_KEY: AF82967B3AB693DD0D992F4FA2F93E4BEC619D8D
+#       PUBLIC_ORTHANC_ROOT: 'https://orthanc.kemax.com.br/shares/'
+#       PUBLIC_LANDING_ROOT: 'https://orthanc.kemax.com.br/shares/ui/app/token-landing.html'
+#       PUBLIC_OHIF_ROOT: 'https://orthanc.kemax.com.br/ohif/'
+#       USERS: "{\n  \"share-user\": \"Share@2024\"\n}\n"
+#   ohif:
+#     image: 'orthancteam/ohif-v3:25.8.1'
+#     restart: unless-stopped
+#   orthanc-db:
+#     image: 'postgres:15'
+#     restart: unless-stopped
+#     volumes:
+#       - 'orthanc-db:/var/lib/postgresql/data'
+#     environment:
+#       POSTGRES_HOST_AUTH_METHOD: trust
+
+#   worklist-service:
+#     build:
+#       context: ./worklist-service
+#       dockerfile: Dockerfile
+#     restart: unless-stopped
+#     volumes:
+#       - './worklists:/worklists'
+#     ports:
+#       - '8002:8002'  # <<< PORTA EXPOSTA PARA ACESSO EXTERNO
+#     environment:
+#       FLASK_ENV: production
+# volumes:
+#   orthanc-storage: null
+#   orthanc-db: null
